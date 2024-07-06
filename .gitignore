@@ -1,2 +1,5 @@
 data_folder/
 .env
+test_run.py
+__pycache__/
+*.db
