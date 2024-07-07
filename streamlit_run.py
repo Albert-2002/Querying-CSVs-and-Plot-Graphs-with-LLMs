@@ -63,6 +63,12 @@ plt.xlabel('Age')
 plt.ylabel('Frequency')
 plt.show()
 
+Input: question: 'CHART: Show KDE plot of Age', columns: ['Age', 'Gender', 'Height']
+Output: df['Age'].plot(kind='kde', title='KDE Plot of Age')
+plt.xlabel('Age')
+plt.ylabel('Density')
+plt.show()
+
 Do not include any explanations or additional text in your response.
 Convert questions to Pandas/Matplotlib code. Use only given columns and 'df' as DataFrame name. Return only code, no explanations.
 If impossible, return 'I cannot answer this question'."""),
