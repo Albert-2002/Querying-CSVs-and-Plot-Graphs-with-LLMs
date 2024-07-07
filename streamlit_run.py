@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import seaborn as sns
 import os
 from dotenv import load_dotenv, find_dotenv
 from langchain_huggingface import HuggingFaceEndpoint
@@ -18,20 +19,20 @@ llm = HuggingFaceEndpoint(repo_id="mistralai/Mistral-7B-Instruct-v0.2", temperat
                         max_new_tokens=150, streaming=True, top_k=80, top_p=0.95)
 
 prompt = ChatPromptTemplate.from_messages([
-    ("system", """You are an expert Python Pandas Query and Matplotlib Chart Generator. Your task is to convert natural language questions into precise, executable Pandas queries or Matplotlib chart generation code.
+    ("system", """You are an expert Python Pandas Query and Matplotlib Chart Generator. Convert natural language questions into executable Pandas queries or Matplotlib chart generation code.
 
-Instructions:
-1. Use only the provided column names in your queries or charts.
+Rules:
+1. Use only provided column names.
 2. Always use 'df' as the DataFrame name.
-3. Generate only the Pandas query or Matplotlib code, without any explanations or additional text.
-4. If the question cannot be answered with the given columns, respond with exactly: 'I cannot answer this question'
-5. Ensure your queries and chart generation code are syntactically correct and follow best practices.
-6. Use appropriate Pandas functions and methods (e.g., mean(), median(), mode(), describe(), etc.) when applicable.
-7. For comparisons, use proper syntax (e.g., df['column'] == value).
-8. For string operations, use str accessor (e.g., df['column'].str.contains()).
-9. Handle potential NaN values when necessary.
-10. For multiple statistics, use a single line of code when possible.
-11. For charts, use appropriate Matplotlib functions and ensure the chart is properly labeled and styled.
+3. Generate only Pandas query or Matplotlib code.
+4. If question can't be answered with given columns, return: 'I cannot answer this question'
+5. Ensure code is syntactically correct and follows best practices.
+6. Use appropriate Pandas functions (e.g., mean(), median(), mode(), describe()).
+7. Use proper syntax for comparisons (e.g., df['column'] == value).
+8. Use str accessor for string operations (e.g., df['column'].str.contains()).
+9. Handle NaN values when necessary.
+10. Use single line of code for multiple statistics when possible.
+11. For charts, use appropriate Matplotlib functions with proper labels and styling.
 
 Examples:
 
@@ -53,13 +54,18 @@ Output: df[(df['Gender'] == 'Male') & (df['Age'] > 30)]['Height'].mean()
 Input: question: 'Get mean, median and mode of the Glucose column', columns: ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age', 'Outcome']
 Output: df['Glucose'].agg(['mean', 'median', lambda x: x.mode().iloc[0]])
 
+Input: question: 'Get the minimum and maximum of all columns', columns: ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age', 'Outcome']
+Output: df.agg(['min', 'max'])
+
 Input: question: 'CHART: Show the distribution of ages', columns: ['Age', 'Gender', 'Height']
 Output: df['Age'].plot(kind='hist', title='Distribution of Ages')
 plt.xlabel('Age')
 plt.ylabel('Frequency')
 plt.show()
 
-Remember to return ONLY the Pandas query or the Matplotlib chart generation code."""),
+Do not include any explanations or additional text in your response.
+Convert questions to Pandas/Matplotlib code. Use only given columns and 'df' as DataFrame name. Return only code, no explanations.
+If impossible, return 'I cannot answer this question'."""),
     ("human", "{input}")
 ])
 
@@ -95,7 +101,7 @@ if uploaded_file is not None:
             st.subheader("Generated Code:")
             st.code(code_string, language='python')
 
-            exec_context = {"df": df, "plt": plt}
+            exec_context = {"df": df, "plt": plt, "sns": sns}
 
             try:
                 if user_input.startswith("CHART:"):
