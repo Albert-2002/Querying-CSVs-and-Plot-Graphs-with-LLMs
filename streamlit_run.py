@@ -7,15 +7,16 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 import matplotlib.pyplot as plt
 
-# Load environment variables
+# meta-llama/Meta-Llama-3-8B-Instruct
+# mistralai/Mistral-7B-Instruct-v0.2
+# mistralai/Mistral-7B-Instruct-v0.3
+
 load_dotenv(find_dotenv())
 HF_TOKEN = os.environ.get("HUGGINGFACEHUB_API_TOKEN")
 
-# Initialize the LLM
 llm = HuggingFaceEndpoint(repo_id="mistralai/Mistral-7B-Instruct-v0.2", temperature=0.1,
-                        max_new_tokens=80, streaming=True, top_k=80, top_p=0.95)
+                        max_new_tokens=150, streaming=True, top_k=80, top_p=0.95)
 
-# Define the prompt template
 prompt = ChatPromptTemplate.from_messages([
     ("system", """You are an expert Python Pandas Query and Matplotlib Chart Generator. Your task is to convert natural language questions into precise, executable Pandas queries or Matplotlib chart generation code.
 
@@ -71,42 +72,36 @@ def clean_string(text):
     cleaned_text = cleaned_text.strip()
     return cleaned_text
 
-st.title("Pandas Query and Chart Generator")
+st.set_page_config(page_title="CSV Analyzer📊", page_icon="📈")
+st.title("Pandas Query📰 and Chart Generator📊")
 
-# File uploader for CSV files
-uploaded_file = st.file_uploader("Upload your CSV file", type="csv")
+uploaded_file = st.file_uploader("Upload your CSV file:", type="csv")
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
-    st.write("DataFrame Preview:")
+    st.write("DataFrame Preview: ")
     st.dataframe(df.head())
 
-    # Input for the user's question
-    user_input = st.text_input("Enter your question:")
+    user_input = st.text_input("Enter your prompt: ",placeholder="Start prompt with 'CHART:' to enter visualization mode.")
 
-    if st.button("Generate Query or Chart"):
+    if st.button("Generate Query or Chart 👈"):
         if user_input:
-            # Generate the query or chart code using the LLM
             columns = list(df.columns)
             query = f"Input: question: '{user_input}', columns: {columns}"
             response = chain.invoke({"input": query})
 
-            # Clean the generated query or chart code
             code_string = clean_string(response)
 
             st.subheader("Generated Code:")
             st.code(code_string, language='python')
 
-            # Prepare the execution context
             exec_context = {"df": df, "plt": plt}
 
             try:
                 if user_input.startswith("CHART:"):
-                    # Execute the generated Matplotlib code
                     exec(code_string, exec_context)
                     st.pyplot(plt)
                 else:
-                    # Execute the generated Pandas query
                     result = eval(code_string, exec_context)
                     st.subheader("Query Result:")
                     st.write(result)
