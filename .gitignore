@@ -3,3 +3,4 @@ data_folder/
 test_run.py
 __pycache__/
 *.db
+data_science_internship_test.csv
